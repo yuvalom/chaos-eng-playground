@@ -1,0 +1,56 @@
+{
+    "title": "System is resilient to provider's failures",
+    "description": "Can our consumer survive gracefully a provider's failure?",
+    "tags": [
+        "kubernetes"
+    ],
+    "steady-state-hypothesis": {
+        "title": "Services are all available and healthy",
+        "probes": [
+            {
+				"name": "all-services-are-healthy",
+                "type": "probe",
+                "tolerance": true,
+                "provider": {
+                    "type": "python",
+                    "module": "chaosk8s.probes",
+                    "func": "deployment_available_and_healthy",
+					"arguments": {
+                        "name": "web-service-app-deployment"
+                    }
+                }
+            },
+			{
+				"type": "probe",
+				"name": "consumer-service-must-still-respond",
+				"tolerance": 200,
+				"provider": {
+					"type": "http",
+					"timeout": 5,
+					"url": "http://localhost:36147/api/v1/server/0/device/1"
+				}
+			}
+        ]
+    },
+    "method": [
+        {
+            "type": "action",
+            "name": "terminate-webapp-pod",
+            "provider": {
+                "type": "python",
+                "module": "chaosk8s.pod.actions",
+                "func": "terminate_pods",
+                "arguments": {
+                    "label_selector": "app=web-service-app",
+                    "name_pattern": "web-service-app-deployment-[0-9].*$",
+                    "rand": true
+                }
+            },
+            "pauses": {
+                "after": 10
+            }
+        }
+        
+    ],
+    "rollbacks": []
+}

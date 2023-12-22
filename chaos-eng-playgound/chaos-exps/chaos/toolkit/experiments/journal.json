@@ -1,0 +1,140 @@
+{
+  "chaoslib-version": "1.39.0",
+  "platform": "Linux-5.10.102.1-microsoft-standard-WSL2-x86_64-with-glibc2.29",
+  "node": "Win-",
+  "experiment": {
+    "title": "System is resilient to provider's failures",
+    "description": "Can our consumer survive gracefully a provider's failure?",
+    "tags": [
+      "kubernetes"
+    ],
+    "steady-state-hypothesis": {
+      "title": "Services are all available and healthy",
+      "probes": [
+        {
+          "name": "all-services-are-healthy",
+          "type": "probe",
+          "tolerance": true,
+          "provider": {
+            "type": "python",
+            "module": "chaosk8s.probes",
+            "func": "deployment_available_and_healthy",
+            "arguments": {
+              "name": "web-service-app-deployment"
+            }
+          }
+        }
+      ]
+    },
+    "method": [
+      {
+        "type": "action",
+        "name": "terminate-webapp-pod",
+        "provider": {
+          "type": "python",
+          "module": "chaosk8s.pod.actions",
+          "func": "terminate_pods",
+          "arguments": {
+            "label_selector": "app=web-service-app",
+            "name_pattern": "web-service-app-deployment-[0-9].*$",
+            "rand": true
+          }
+        },
+        "pauses": {
+          "after": 10
+        }
+      }
+    ],
+    "rollbacks": [],
+    "dry": null
+  },
+  "start": "2023-09-27T11:49:59.135558",
+  "status": "completed",
+  "deviated": false,
+  "steady_states": {
+    "before": {
+      "steady_state_met": true,
+      "probes": [
+        {
+          "activity": {
+            "name": "all-services-are-healthy",
+            "type": "probe",
+            "tolerance": true,
+            "provider": {
+              "type": "python",
+              "module": "chaosk8s.probes",
+              "func": "deployment_available_and_healthy",
+              "arguments": {
+                "name": "web-service-app-deployment"
+              }
+            }
+          },
+          "output": true,
+          "start": "2023-09-27T11:49:59.138557",
+          "status": "succeeded",
+          "end": "2023-09-27T11:49:59.158153",
+          "duration": 0.019596,
+          "tolerance_met": true
+        }
+      ]
+    },
+    "after": {
+      "steady_state_met": true,
+      "probes": [
+        {
+          "activity": {
+            "name": "all-services-are-healthy",
+            "type": "probe",
+            "tolerance": true,
+            "provider": {
+              "type": "python",
+              "module": "chaosk8s.probes",
+              "func": "deployment_available_and_healthy",
+              "arguments": {
+                "name": "web-service-app-deployment"
+              }
+            }
+          },
+          "output": true,
+          "start": "2023-09-27T11:50:09.199994",
+          "status": "succeeded",
+          "end": "2023-09-27T11:50:09.263874",
+          "duration": 0.06388,
+          "tolerance_met": true
+        }
+      ]
+    },
+    "during": []
+  },
+  "run": [
+    {
+      "activity": {
+        "type": "action",
+        "name": "terminate-webapp-pod",
+        "provider": {
+          "type": "python",
+          "module": "chaosk8s.pod.actions",
+          "func": "terminate_pods",
+          "arguments": {
+            "label_selector": "app=web-service-app",
+            "name_pattern": "web-service-app-deployment-[0-9].*$",
+            "rand": true
+          }
+        },
+        "pauses": {
+          "after": 10
+        }
+      },
+      "output": [
+        "web-service-app-deployment-78d99bfc5f-btnd8"
+      ],
+      "start": "2023-09-27T11:49:59.160282",
+      "status": "succeeded",
+      "end": "2023-09-27T11:49:59.189647",
+      "duration": 0.029365
+    }
+  ],
+  "rollbacks": [],
+  "end": "2023-09-27T11:50:09.266218",
+  "duration": 10.138891458511353
+}

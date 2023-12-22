@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="com.lombard.storage.models.DeviceEntity" table="devices" catalog="test">
+        <id name="id" type="string" column="id" />
+        <property name="platformMgmtDeviceName" type="string">
+            <column name="mgmt_device_name" length="100" />
+        </property>
+        <property name="platformMgmtDeviceId" type="string">
+            <column name="mgmt_device_id" length="100" />
+        </property>
+        <property name="platformMgmtDeviceUsername" type="string">
+            <column name="registry_username" length="45" />
+        </property>
+        <property name="host" type="string">
+            <column name="host" length="45" />
+        </property>
+        <property name="port" type="int">
+            <column name="port" />
+        </property>
+        <property name="type" type="string">
+            <column name="type" />
+        </property>
+        <property name="manufacturer" type="string">
+            <column name="manufacturer" length="50" />
+        </property>
+        <property name="model" type="string">
+            <column name="model" length="100" />
+        </property>
+        <property name="firmwareVersion" type="string">
+            <column name="firmware_version" length="100" />
+        </property>
+        <property name="cpuArchitecture" type="string">
+            <column name="cpu_architecture" length="100" />
+        </property>
+        <property name="macAddress" type="string">
+            <column name="mac_address" length="20" />
+        </property>
+    </class>
+</hibernate-mapping>

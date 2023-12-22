@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+  <include resource="logback-agentless.xml"/>
+
+  <appender name="rollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${LOG_PATH}/webapp.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <!-- daily rollover -->
+      <fileNamePattern>${LOG_PATH}/webapp_%d{yyyy-MM-dd}.log</fileNamePattern>
+
+      <!-- keep 30 days' worth of history capped at 512 MB total size -->
+      <maxHistory>30</maxHistory>
+      <totalSizeCap>512MB</totalSizeCap>
+
+    </rollingPolicy>
+
+    <encoder>
+      <pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} \([%15.15thread]\) %-5level [%-37.37logger{36}] - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+ <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+    <layout class="ch.qos.logback.classic.PatternLayout">
+	<Pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} \([%15.15thread]\) %-5level [%-37.37logger{36}] - %msg%n</Pattern>
+    </layout>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="console"/>
+  </root>
+</configuration>

@@ -1,0 +1,166 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.lombard</groupId>
+		<artifactId>parent</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../parent/pom.xml</relativePath>
+	</parent>
+
+	<artifactId>infra</artifactId>
+	<packaging>jar</packaging>
+
+	<properties>
+		<app.name>web-service-app</app.name>
+		<package.version>${project.version}</package.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.lombard</groupId>
+			<artifactId>logic</artifactId>
+			<version>${project.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.lombard</groupId>
+			<artifactId>app</artifactId>
+			<version>${project.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-orm</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tomcat</groupId>
+			<artifactId>tomcat-dbcp</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+
+	</dependencies>
+
+	<!-- packaging multi module application as uber jar -->
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+						<manifestEntries>
+							<Implementation-Version>${package.version}</Implementation-Version>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<finalName>${app.name}</finalName>
+					<executable>true</executable>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<profiles>
+		<profile>
+			<id>linux</id>
+			<properties>
+				<package.install.dir>/opt/web-service-app</package.install.dir>
+				<package.data.dir>/etc/web-service-app</package.data.dir>
+				<package.var.dir>/var/web-service-app</package.var.dir>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<groupId>org.apache.maven.plugins</groupId>
+						<executions>
+							<execution>
+								<id>prepare package directory</id>
+								<phase>package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<tasks>
+										<mkdir
+											dir="${project.build.directory}/package${package.install.dir}/" />
+										<mkdir
+											dir="${project.build.directory}/package${package.install.dir}/lib/" />
+										<mkdir
+											dir="${project.build.directory}/package${package.data.dir}/" />
+
+										<copy file="${project.build.directory}/${app.name}.jar"
+											tofile="${project.build.directory}/package${package.install.dir}/lib/${app.name}.jar" />
+										<mkdir
+											dir="${project.build.directory}/package/var/log/web-service-app/" />
+
+										<copy file="src/main/resources/logback-rolling.xml"
+											tofile="${project.build.directory}/package${package.install.dir}/lib/logback-rolling.xml" />
+										
+										<mkdir dir="${project.build.directory}/workspace" />
+										<tar basedir="${project.build.directory}/package"
+											destfile="${project.build.directory}/workspace/rootfs.tar" />
+										<gzip src="${project.build.directory}/workspace/rootfs.tar"
+											destfile="${project.build.directory}/workspace/rootfs.tar.gz" />
+										<delete
+											file="${project.build.directory}/workspace/rootfs.tar" />
+									</tasks>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>

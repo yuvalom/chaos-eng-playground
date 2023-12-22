@@ -1,0 +1,8 @@
+[36m[2023-09-27 14:48:29 DEBUG] [cli:114][39m ###############################################################################
+[36m[2023-09-27 14:48:29 DEBUG] [cli:115][39m Running command 'run'
+[36m[2023-09-27 14:48:29 DEBUG] [cli:119][39m Using settings file '/home/yuval/.chaostoolkit/settings.yaml'
+[36m[2023-09-27 14:48:30 DEBUG] [settings:30][39m The Chaos Toolkit settings file could not be found at '/home/yuval/.chaostoolkit/settings.yaml'.
+[36m[2023-09-27 14:48:30 DEBUG] [__init__:445][39m No controls to apply on 'loader'
+[36m[2023-09-27 14:48:30 DEBUG] [__init__:445][39m No controls to apply on 'loader'
+[31m[2023-09-27 14:48:30 ERROR] [cli:268][39m Path "experiment.json" does not exist.
+[36m[2023-09-27 14:48:30 DEBUG] [cli:269][39m Path "experiment.json" does not exist.
