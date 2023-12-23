@@ -6,11 +6,11 @@ docker run --name chaos-network-app --cap-add NET_ADMIN --cap-add NET_RAW --netw
 
 # Running the tool
 
-# Latency attack
+## Latency attack
 ./network-chaos -a latency -i ens5 -h 10.21.1.170 -l 15000 -d 30000
 
-# Latency attack on subnet
+## Latency attack on subnet
 ./network-chaos -a latency -i ens5 -h 192.168.2.0/24 -l 15000 -d 30000
 
-# Packet loss attack
+## Packet loss attack
 ./network-chaos -a drop -i ens5 -h 10.21.1.170 -pl 30 -d 30000
