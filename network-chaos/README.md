@@ -1,7 +1,7 @@
 # Build this Dockerfile using:
 docker build -t network-chaos .
 
-# Run the Docker container interactively in host networking mode with runtime arguments:
+# Run the container interactively in host networking mode:
 docker run --name chaos-network-app --cap-add NET_ADMIN --cap-add NET_RAW --network host -ti --entrypoint /bin/bash network-chaos
 
 # Running the tool
