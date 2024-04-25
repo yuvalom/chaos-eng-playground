@@ -12,10 +12,10 @@ func Attack(interfaceName string, srcIpAddress string, srcPort string, dstIpAddr
 	duration, err := strconv.ParseInt(attackDuration, 10, 64)
 	if err != nil {
 		log.Log.Error("Error:", err)
-		return errors.New("Failed to parse attack duration")
+		return errors.New("failed to parse attack duration")
 	}
 	// Clearing all root qdisc
-	err = clearRootQDisc(interfaceName)
+	_ = clearRootQDisc(interfaceName)
 	// Add root qdisc
 	err = addRootQDisc(interfaceName)
 	if err != nil {
@@ -55,7 +55,7 @@ func clearRootQDisc(interfaceName string) error {
 	if err != nil {
 		log.Log.Errorf("Error clearing root qdisc: %s", err)
 		log.Log.Infof("Output: %s", string(output))
-		return errors.New("Error clearing root qdisc")
+		return errors.New("error clearing root qdisc")
 	}
 	return nil
 }
@@ -67,14 +67,14 @@ func addRootQDisc(interfaceName string) error {
 	if err != nil {
 		log.Log.Errorf("Error adding root qdisc: %s", err)
 		log.Log.Infof("Output: %s", string(output))
-		return errors.New("Error adding root qdisc")
+		return errors.New("error adding root qdisc")
 	}
 	return nil
 }
 
 func configureNetworkPacketLossRule(interfaceName string, lossPercentage string) error {
 	// Add child qdisc with packet loss
-	log.Log.Infof("Adding child queue discipline for interface %s with configured %s packet loss ", interfaceName, lossPercentage)
+	log.Log.Infof("Adding child queue discipline for interface %s with configured %s%% packet loss ", interfaceName, lossPercentage)
 	cmd := exec.Command("tc", "qdisc", "add", "dev", interfaceName, "parent", "1:2", "handle", "10:", "netem", "loss", lossPercentage+"%")
 	if err := cmd.Run(); err != nil {
 		log.Log.Errorf("Error adding child qdisc: %s. Rolling back changes", err)
@@ -82,7 +82,7 @@ func configureNetworkPacketLossRule(interfaceName string, lossPercentage string)
 		if err := cmd.Run(); err != nil {
 			log.Log.Errorf("Error deleting root qdisc: %s", err)
 		}
-		return errors.New("Error configuring network packet loss")
+		return errors.New("error configuring network packet loss")
 	}
 	return nil
 }
@@ -94,22 +94,16 @@ func addFilter(interfaceName string, srcIpAddress string, srcPort string, dstIpA
 		cmd := exec.Command("tc", "filter", "add", "dev", interfaceName, "parent", "1:0", "prio", "1", "protocol", "ip", "u32", "match", "ip", "src", srcIpAddress, "match", "ip", "sport", "22", "0xFFFF", "flowid", "1:0")
 		if err := cmd.Run(); err != nil {
 			log.Log.Errorf("Error adding filter for SSH sessions: %s", err)
-			cmd = exec.Command("tc", "qdisc", "del", "dev", interfaceName, "root")
-			if err := cmd.Run(); err != nil {
-				log.Log.Errorf("Error deleting root qdisc: %s", err)
-			}
-			return errors.New("Error adding filter for SSH sessions")
+			clearRootQDisc(interfaceName)
+			return errors.New("error adding filter for SSH sessions")
 		}
 		// Add filter to match traffic to specific destination host
 		log.Log.Infof("Adding filter for interface %s with parent qdisc that match source ip %s and destination ip %s", interfaceName, srcIpAddress, dstIpAddress)
 		cmd = exec.Command("tc", "filter", "add", "dev", interfaceName, "parent", "1:0", "prio", "2", "protocol", "ip", "u32", "match", "ip", "src", srcIpAddress, "match", "ip", "dst", dstIpAddress, "flowid", "1:2")
 		if err := cmd.Run(); err != nil {
 			log.Log.Errorf("Error adding filter for source and destination IP addresses: %s", err)
-			cmd = exec.Command("tc", "qdisc", "del", "dev", interfaceName, "root")
-			if err := cmd.Run(); err != nil {
-				log.Log.Errorf("Error deleting root qdisc: %s", err)
-			}
-			return errors.New("for source and destination IP addresses")
+			clearRootQDisc(interfaceName)
+			return errors.New("error adding filter for source and destination IP addresses")
 		}
 	} else if srcIpAddress != "" {
 		// Create filter that will isolate and protect SSH sessions from being affected by the network emulation
@@ -117,11 +111,8 @@ func addFilter(interfaceName string, srcIpAddress string, srcPort string, dstIpA
 		cmd := exec.Command("tc", "filter", "add", "dev", interfaceName, "parent", "1:0", "prio", "1", "protocol", "ip", "u32", "match", "ip", "src", srcIpAddress, "match", "ip", "sport", "22", "0xFFFF", "flowid", "1:0")
 		if err := cmd.Run(); err != nil {
 			log.Log.Errorf("Error adding filter for SSH sessions: %s", err)
-			cmd = exec.Command("tc", "qdisc", "del", "dev", interfaceName, "root")
-			if err := cmd.Run(); err != nil {
-				log.Log.Errorf("Error deleting root qdisc: %s", err)
-			}
-			return errors.New("Error adding filter for SSH session")
+			clearRootQDisc(interfaceName)
+			return errors.New("error adding filter for SSH session")
 		}
 
 		// Add filter to match traffic to specific destination host
@@ -129,11 +120,8 @@ func addFilter(interfaceName string, srcIpAddress string, srcPort string, dstIpA
 		cmd = exec.Command("tc", "filter", "add", "dev", interfaceName, "parent", "1:0", "prio", "2", "protocol", "ip", "u32", "match", "ip", "dst", srcIpAddress, "flowid", "1:2")
 		if err := cmd.Run(); err != nil {
 			log.Log.Errorf("Error adding filter for source IP address: %s", err)
-			cmd = exec.Command("tc", "qdisc", "del", "dev", interfaceName, "root")
-			if err := cmd.Run(); err != nil {
-				log.Log.Errorf("Error deleting root qdisc: %s", err)
-			}
-			return errors.New("Error adding filter for source IP address")
+			clearRootQDisc(interfaceName)
+			return errors.New("error adding filter for source IP address")
 		}
 	}
 
@@ -143,11 +131,8 @@ func addFilter(interfaceName string, srcIpAddress string, srcPort string, dstIpA
 		cmd := exec.Command("tc", "filter", "add", "dev", interfaceName, "parent", "1:0", "protocol", "ip", "u32", "match", "ip", "sport", srcPort, "0xffff", "flowid", "1:2")
 		if err := cmd.Run(); err != nil {
 			log.Log.Errorf("Error adding filter on srouce port: %s. Rolling back changes", err)
-			cmd = exec.Command("tc", "qdisc", "del", "dev", interfaceName, "root")
-			if err := cmd.Run(); err != nil {
-				log.Log.Errorf("Error deleting root qdisc: %s", err)
-			}
-			return errors.New("Error adding filter for source port")
+			clearRootQDisc(interfaceName)
+			return errors.New("error adding filter for source port")
 		}
 	}
 
@@ -157,11 +142,8 @@ func addFilter(interfaceName string, srcIpAddress string, srcPort string, dstIpA
 		cmd := exec.Command("tc", "filter", "add", "dev", interfaceName, "parent", "1:0", "protocol", "ip", "u32", "match", "ip", "dport", dstPort, "0xffff", "flowid", "1:2")
 		if err := cmd.Run(); err != nil {
 			log.Log.Errorf("Error adding filter on destination port: %s. Rolling back changes", err)
-			cmd = exec.Command("tc", "qdisc", "del", "dev", interfaceName, "root")
-			if err := cmd.Run(); err != nil {
-				log.Log.Errorf("Error deleting root qdisc: %s", err)
-			}
-			return errors.New("Error adding filter for destination port")
+			clearRootQDisc(interfaceName)
+			return errors.New("error adding filter for destination port")
 		}
 	}
 	return nil

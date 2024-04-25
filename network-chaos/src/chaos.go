@@ -124,7 +124,6 @@ func launchAttack(attack string, interfaceName string, srcPort string, srcIp str
 			}
 		}
 	case "drop":
-
 		fmt.Println("===============================================")
 		fmt.Println("========= Chosen attack : packet drop =========")
 		fmt.Println("===============================================")
@@ -158,6 +157,7 @@ func launchAttack(attack string, interfaceName string, srcPort string, srcIp str
 			}
 		}
 	default:
+		log.Log.Errorf("Attack type is invalid: %s", attack)
 		printHelp()
 	}
 }
@@ -170,11 +170,18 @@ func printHelp() {
 }
 
 func validateLatencyAttackFlags(interfaceName string, srcIp string, destIp string, srcPort string, destPort string, networkLatency string, attackDuration string) bool {
-	if interfaceName == "" || networkLatency == "" || attackDuration == "" {
+	if interfaceName == "" {
+		log.Log.Error("network interface name cannt be empty")
 		return false
+	} else if networkLatency == "" {
+		log.Log.Error("network latency cannot be empty")
+	} else if attackDuration == "" {
+		log.Log.Error("attack duration cannot be empty")
 	} else if destPort == "22" || srcPort == "22" {
+		log.Log.Error("dest / src port cannot be 22")
 		return false
 	} else if srcPort == "" && srcIp == "" && destPort == "" && destIp == "" {
+		log.Log.Error("no src and dst endpoints are defined")
 		return false
 	} else if !validateIpFlags(srcIp, destIp) {
 		return false
@@ -198,6 +205,7 @@ func validatePacketDropAttackFlags(interfaceName string, srcIp string, destIp st
 
 func validateIpFlags(srcIp string, destIp string) bool {
 	if srcIp == "" && destIp != "" {
+		log.Log.Error("src ip cannot be empty")
 		return false
 	}
 	return true
