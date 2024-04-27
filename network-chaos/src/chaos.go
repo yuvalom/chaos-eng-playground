@@ -33,7 +33,7 @@ func main() {
 	dstPortFlag := flag.String("dport", "", "Destination port to attack. SSH port is not supported")
 	dstIpFlag := flag.String("dst", "", "Destination host address to attack. Must be configured with source host")
 	latencyFlag := flag.String("l", "", "latency in milliseconds")
-	packetLossFlag := flag.String("pl", "", "Packet loss percetage (e.g 10%)")
+	packetLossFlag := flag.String("pl", "", "Packet loss percetage (e.g 10)")
 	durationFlag := flag.String("d", "", "Attack duration in milliseconds")
 	sleepBetweenAttackDurationFlag := flag.String("s", "", "sleep duration in milliseconds between attacks in case of continuous attack")
 
@@ -94,7 +94,7 @@ func launchAttack(attack string, interfaceName string, srcPort string, srcIp str
 		fmt.Println("===============================================")
 		fmt.Println("=========== Chosen attack : latency ===========")
 		fmt.Println("===============================================")
-		if !validateLatencyAttackFlags(interfaceName, srcIp, destIp, srcPort, destPort, networkLatency, attackDuration) {
+		if !validateLatencyAttackConfiguration(interfaceName, srcIp, destIp, srcPort, destPort, networkLatency, attackDuration) {
 			printHelp()
 			return
 		}
@@ -128,7 +128,7 @@ func launchAttack(attack string, interfaceName string, srcPort string, srcIp str
 		fmt.Println("========= Chosen attack : packet drop =========")
 		fmt.Println("===============================================")
 
-		if !validatePacketDropAttackFlags(interfaceName, srcIp, destIp, srcPort, destPort, networkLatency, attackDuration) {
+		if !validatePacketDropAttackConfiguration(interfaceName, srcIp, destIp, srcPort, destPort, networkLatency, attackDuration) {
 			printHelp()
 			return
 		}
@@ -169,12 +169,27 @@ func printHelp() {
 	flag.PrintDefaults()
 }
 
-func validateLatencyAttackFlags(interfaceName string, srcIp string, destIp string, srcPort string, destPort string, networkLatency string, attackDuration string) bool {
+func validateLatencyAttackConfiguration(interfaceName string, srcIp string, destIp string, srcPort string, destPort string, networkLatency string, attackDuration string) bool {
+	if networkLatency == "" {
+		log.Log.Error("network latency cannot be empty")
+		return false
+	}
+	return validateBaseConfiguraion(interfaceName, attackDuration, srcIp, destIp, srcPort, destPort)
+
+}
+
+func validatePacketDropAttackConfiguration(interfaceName string, srcIp string, destIp string, srcPort string, destPort string, packetDropPercentage string, attackDuration string) bool {
+	if packetDropPercentage == "" {
+		log.Log.Error("packet drop percentage cannt be empty")
+		return false
+	}
+	return validateBaseConfiguraion(interfaceName, attackDuration, srcIp, destIp, srcPort, destPort)
+}
+
+func validateBaseConfiguraion(interfaceName string, attackDuration string, srcIp string, destIp string, srcPort string, destPort string) bool {
 	if interfaceName == "" {
 		log.Log.Error("network interface name cannt be empty")
 		return false
-	} else if networkLatency == "" {
-		log.Log.Error("network latency cannot be empty")
 	} else if attackDuration == "" {
 		log.Log.Error("attack duration cannot be empty")
 	} else if destPort == "22" || srcPort == "22" {
@@ -183,28 +198,7 @@ func validateLatencyAttackFlags(interfaceName string, srcIp string, destIp strin
 	} else if srcPort == "" && srcIp == "" && destPort == "" && destIp == "" {
 		log.Log.Error("no src and dst endpoints are defined")
 		return false
-	} else if !validateIpFlags(srcIp, destIp) {
-		return false
-	}
-	return true
-
-}
-
-func validatePacketDropAttackFlags(interfaceName string, srcIp string, destIp string, srcPort string, destPort string, packetDropPercentage string, attackDuration string) bool {
-	if interfaceName == "" || packetDropPercentage == "" || attackDuration == "" {
-		return false
-	} else if destPort == "22" || srcPort == "22" {
-		return false
-	} else if srcPort == "" && srcIp == "" && destPort == "" && destIp == "" {
-		return false
-	} else if !validateIpFlags(srcIp, destIp) {
-		return false
-	}
-	return true
-}
-
-func validateIpFlags(srcIp string, destIp string) bool {
-	if srcIp == "" && destIp != "" {
+	} else if srcIp == "" && destIp != "" {
 		log.Log.Error("src ip cannot be empty")
 		return false
 	}
